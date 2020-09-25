@@ -27,8 +27,18 @@ from tasks._check_output import check_output
 # "admin:directory_v1" and "admin:datatransfer_v1" are incorrectly marked in
 # the Discovery index as not preferred.
 _ACTUALLY_PREFERRED = ['admin:directory_v1', 'admin:datatransfer_v1']
+# Override with enviroment variable DISCOVERY_ARTIFACT_MANAGER_REPO_NAME.
 _REPO_NAME = 'discovery-artifact-manager'
+# Override with enviroment variable DISCOVERY_ARTIFACT_MANAGER_REPO_PATH.
 _REPO_PATH = 'googleapis/discovery-artifact-manager'
+
+
+def _repo_name() -> str:
+    return os.environ.get("DISCOVERY_ARTIFACT_MANAGER_REPO_NAME") or _REPO_NAME
+
+
+def _repo_path() -> str:
+    return os.environ.get("DISCOVERY_ARTIFACT_MANAGER_REPO_PATH") or _REPO_PATH
 
 
 def discovery_documents(filepath, preferred=False, skip=None):
@@ -45,7 +55,7 @@ def discovery_documents(filepath, preferred=False, skip=None):
         dict(string, string): a map of API IDs to Discovery document
             filenames.
     """
-    repo = _git.clone_from_github(_REPO_PATH, join(filepath, _REPO_NAME))
+    repo = _git.clone_from_github(_repo_path(), join(filepath, _repo_name()))
     filenames = glob.glob(join(repo.filepath, 'discoveries/*.json'))
     # Skip index.json.
     filenames = [x for x in filenames if os.path.basename(x) != 'index.json']
@@ -84,7 +94,7 @@ def update(filepath, github_account):
             with.
     """
     repo = _git.clone_from_github(
-        _REPO_PATH, join(filepath, _REPO_NAME), github_account=github_account)
+        _repo_path(), join(filepath, _repo_name()), github_account=github_account)
     _update_disco(repo, github_account)
 
 def _update_disco(repo: _git.Repository, github_account: accounts.GitHubAccount) -> int:
@@ -117,7 +127,7 @@ def create_pull_request(filepath, github_account):
         github_account (GitHubAccount): the GitHub account to commit with.
     """
     repo = _git.clone_from_github(
-        _REPO_PATH, join(filepath, _REPO_NAME), github_account=github_account)
+        _repo_path(), join(filepath, _repo_name()), github_account=github_account)
     repo.checkout_new('update-discovery-artifacts-' +
         datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     _update_disco(repo, github_account)
