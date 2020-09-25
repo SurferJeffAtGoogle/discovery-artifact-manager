@@ -133,7 +133,6 @@ def create_pull_request(filepath, github_account):
     branch = ('update-discovery-artifacts-' +
         datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))
     repo.checkout_new(branch)
-    _update_disco(repo, github_account)
     if _update_disco(repo, github_account):
         repo.push(branch=branch)
         gh = Github(github_account.personal_access_token)
